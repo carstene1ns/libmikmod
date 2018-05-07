@@ -30,6 +30,7 @@ EXTRA_DIST = CMakeLists.txt \
 	     drv_sndio.c  \
 	     drv_stdout.c \
 	     drv_sun.c    \
+	     drv_switch.c \
 	     drv_ultra.c  \
 	     drv_wav.c    \
 	     drv_win.c    \

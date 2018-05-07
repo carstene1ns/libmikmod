@@ -835,6 +835,10 @@ MIKMODAPI long MikMod_GetVersion(void)
 #define INIT_MUTEX(name) \
 	HANDLE _mm_mutex_##name
 
+#elif defined(__SWITCH__)
+#define INIT_MUTEX(name) \
+	Mutex _mm_mutex_##name = 0;
+
 #else
 #define INIT_MUTEX(name) \
 	void *_mm_mutex_##name = NULL
@@ -865,6 +869,8 @@ MIKMODAPI BOOL MikMod_InitThreads(void)
 			result=0;
 		else
 			result=1;
+#elif defined(__SWITCH__)
+		result=1;
 #endif
 	}
 	return result;

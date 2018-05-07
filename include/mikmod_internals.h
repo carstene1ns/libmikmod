@@ -117,6 +117,17 @@ extern MikMod_handler_t _mm_errorhandler;
         if(_mm_mutex_##name)\
             ReleaseMutex(_mm_mutex_##name)
 
+#elif defined(__SWITCH__)
+#include <switch.h>
+#define DECLARE_MUTEX(name) \
+        extern Mutex _mm_mutex_##name
+#define MUTEX_LOCK(name)    \
+        if(_mm_mutex_##name)\
+            mutexLock(&_mm_mutex_##name)
+#define MUTEX_UNLOCK(name)  \
+        if(_mm_mutex_##name)\
+            mutexUnlock(&_mm_mutex_##name)
+
 #else
 #define DECLARE_MUTEX(name) \
         extern void *_mm_mutex_##name

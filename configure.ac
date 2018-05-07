@@ -49,6 +49,7 @@ libmikmod_irix=no
 libmikmod_sun=no
 libmikmod_aix=no
 libmikmod_hpux=no
+libmikmod_switch=no
 
 case $host_os in
 	mingw*) libmikmod_mingw=yes ;;
@@ -75,6 +76,11 @@ case $host_os in
 		fi
 		libmikmod_sun=yes ;;
 esac
+
+if test $host = aarch64-none-elf
+then
+  libmikmod_switch=yes
+fi
 
 # ==============================================================
 # libmikmod specific control variables and their default values.
@@ -115,6 +121,7 @@ libmikmod_driver_xaudio2=no
 libmikmod_driver_ultra=no
 libmikmod_driver_os2=$libmikmod_os2
 libmikmod_driver_dart=$libmikmod_os2
+libmikmod_driver_switch=$libmikmod_switch
 libmikmod_driver_aiff=yes
 libmikmod_driver_wav=yes
 libmikmod_driver_raw=yes
@@ -173,6 +180,7 @@ then
   libmikmod_driver_ultra=no
   libmikmod_driver_os2=no
   libmikmod_driver_dart=no
+  libmikmod_driver_switch=no
   libmikmod_driver_aiff=no
   libmikmod_driver_wav=no
   libmikmod_driver_raw=no
@@ -308,6 +316,12 @@ case $host_os in
      libmikmod_driver_sdl=no ;;
   *) ;;
 esac
+
+if test $host = aarch64-none-elf
+then
+  libmikmod_driver_pipe=no
+  libmikmod_driver_stdout=no
+fi
 
 AC_ARG_ENABLE([aiff], [AS_HELP_STRING([--enable-aiff],[include support for output to an aiff file [default=yes]])],
 [if test "$enableval" = "yes"
@@ -453,6 +467,14 @@ then
   libmikmod_driver_ultra=$libmikmod_linux
 else
   libmikmod_driver_ultra=no
+fi])
+
+AC_ARG_ENABLE([switch], [AS_HELP_STRING([--enable-switch],[include Nintendo Switch driver [default=no]])],
+[if test "$enableval" = "yes"
+then
+  libmikmod_driver_switch=$libmikmod_switch
+else
+  libmikmod_driver_switch=no
 fi])
 
 AC_ARG_ENABLE([dl], [AS_HELP_STRING([--enable-dl],[load alsa, esound and ultra drivers at runtime [default=yes]])],
@@ -627,7 +649,7 @@ fi
 
 # POSIX.4 threads
 # ---------------
-if test $libmikmod_mingw = yes || test $libmikmod_amiga = yes
+if test $libmikmod_mingw = yes || test $libmikmod_amiga = yes || test $libmikmod_switch = yes
 then
 	dnl libmikmod_threads variable is for pthreads only
 	libmikmod_threads=no
@@ -928,6 +950,29 @@ then
 	fi
 fi
 
+# nintendo switch audio
+# ---------------------
+if test $libmikmod_driver_switch = yes
+then
+  libmikmod_driver_switch=no
+  ac_save_CPPFLAGS=$CPPFLAGS
+  ac_save_LDFLAGS=$LDFLAGS
+  ac_save_LIBS=$LIBS
+  CPPFLAGS="$CPPFLAGS -isystem${DEVKITPRO}/libnx/include -D__SWITCH__"
+  LDFLAGS="$LDFLAGS -L${DEVKITPRO}/libnx/lib"
+  LIBS="$LIBS -lnx"
+  AC_CHECK_HEADERS([switch.h],[AC_CHECK_LIB([nx],[svcGetSystemTick],[libmikmod_driver_switch=yes])])
+  CPPFLAGS=$ac_save_CPPFLAGS
+  LDFLAGS=$ac_save_LDFLAGS
+  LIBS=$ac_save_LIBS
+  if test $libmikmod_driver_switch = yes
+  then
+    CPPFLAGS="$CPPFLAGS -isystem${DEVKITPRO}/libnx/include -D__SWITCH__"
+    LDFLAGS="$LDFLAGS -L${DEVKITPRO}/libnx/lib"
+    LIBS="$LIBS -lnx"
+  fi
+fi
+
 # ================
 # Choose settings.
 # ================
@@ -1184,6 +1229,13 @@ then
 	then
 		LIBRARY_LIB="-lgus $LIBRARY_LIB"
 	fi
+fi
+
+if test $libmikmod_driver_switch = yes
+then
+  libmikmod_driverlist="switch $libmikmod_driverlist"
+  AC_DEFINE([DRV_SWITCH], 1, [Define if the Nintendo Switch driver is compiled])
+  LIBRARY_LIB="-lnx $LIBRARY_LIB"
 fi
 
 if test $libmikmod_debug = yes

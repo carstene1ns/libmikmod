@@ -63,6 +63,7 @@ libmikmod_la_SOURCES = \
 		drivers/drv_sndio.c \
 		drivers/drv_stdout.c \
 		drivers/drv_sun.c \
+		drivers/drv_switch.c \
 		drivers/drv_ultra.c \
 		drivers/drv_wav.c \
 		drivers/drv_win.c \
